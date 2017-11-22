@@ -3,7 +3,7 @@ var mongo = require('mongodb');
 
 var connMongoDB = function () {
     console.log('Entrou na função de conexão.');
-    var db = new mongo.Db(
+    return new mongo.Db(
         'got',
         new mongo.Server(
             'localhost', //endereço do servidor
@@ -12,8 +12,6 @@ var connMongoDB = function () {
         ),
         {} // configurações adicionais
     );
-
-    return db;
 };
 
 module.exports = function () {
