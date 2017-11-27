@@ -1,3 +1,5 @@
+var crypto = require('crypto');
+
 function UsuariosDAO(connection) {
     this._connection = connection();
 }
@@ -5,6 +7,10 @@ function UsuariosDAO(connection) {
 UsuariosDAO.prototype.inserirUsuario = function (usuario) {
     this._connection.open(function (error, mongoClient) {
         mongoClient.collection('usuarios', function (error, collection) {
+            // criptografando senha antes de salvar
+            var senhaCripto = crypto.createHash('md5').update(usuario.senha).digest('hex');
+            usuario.senha = senhaCripto;
+
             collection.insert(usuario);
             mongoClient.close(); // fechando conexão após uso
         });
@@ -14,6 +20,8 @@ UsuariosDAO.prototype.inserirUsuario = function (usuario) {
 UsuariosDAO.prototype.autenticar = function (usuario, req, res) {
     this._connection.open(function (error, mongoClient) {
         mongoClient.collection('usuarios', function (error, collection) {
+            // criptografando senha
+            usuario.senha = crypto.createHash('md5').update(usuario.senha).digest('hex');
             collection.find(usuario).toArray(function (error, result) {
                 if (result[0] != undefined) {
                     req.session.autorizado = true;
@@ -26,7 +34,7 @@ UsuariosDAO.prototype.autenticar = function (usuario, req, res) {
                 } else {
                     // exibe mensagem de erro na tela de login
                     res.render('index', {
-                        validacao: [{ msg: 'Usuário ou senha inválido.' }],
+                        validacao: [{ msg: 'Usuário ou senha inválidos.' }],
                         dadosForm: req.body
                     });
                 }
